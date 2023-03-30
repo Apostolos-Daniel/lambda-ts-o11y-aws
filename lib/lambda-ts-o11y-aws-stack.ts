@@ -1,16 +1,21 @@
 import * as cdk from 'aws-cdk-lib';
 import { Construct } from 'constructs';
-// import * as sqs from 'aws-cdk-lib/aws-sqs';
+import * as lambda from 'aws-cdk-lib/aws-lambda';
+import * as events from 'aws-cdk-lib/aws-events';
+import * as targets from 'aws-cdk-lib/aws-events-targets';
 
 export class LambdaTsO11YAwsStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+    const myFunction = new lambda.Function(this, 'MyFunction', {
+      runtime: lambda.Runtime.NODEJS_14_X,
+      code: lambda.Code.fromAsset('lib/src'),
+      handler: 'index.handler',
+    });
 
-    // The code that defines your stack goes here
-
-    // example resource
-    // const queue = new sqs.Queue(this, 'LambdaTsO11YAwsQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    const eventRule = new events.Rule(this, 'EventRule', {
+      schedule: events.Schedule.expression('rate(1 hour)'),
+    });
+    eventRule.addTarget(new targets.LambdaFunction(myFunction));
   }
 }
